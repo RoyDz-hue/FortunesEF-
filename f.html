@@ -409,19 +409,28 @@
   </style>
 </head>
 <body>
-  <!-- Button to Open Secure Tab -->
-<button onclick="safeOpenTab()" 
+  <button onclick="openRedirectedTab()" 
   style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
   Download the App
 </button>
 
 <script>
-  function safeOpenTab() {
-    let win = window.open("about:blank", "_blank"); // Open a blank tab first
+  function openRedirectedTab() {
+    let newTab = window.open("about:blank", "_blank"); // Open blank tab first
 
-    setTimeout(() => {
-      win.location.href = "https://median.co/share/xbzame#apk"; // Change location after a delay
-    }, 100);
+    let redirectScript = `
+      <html>
+      <head>
+        <meta http-equiv="refresh" content="0;url=https://median.co/share/xbzame#apk">
+      </head>
+      <body>
+        <p>Redirecting...</p>
+      </body>
+      </html>
+    `;
+
+    newTab.document.write(redirectScript); // Write redirect content
+    newTab.document.close(); // Close document stream
   }
 </script>
   
