@@ -415,44 +415,15 @@
   Download the App
 </button>
 
-<!-- Modal -->
-<dialog id="mymodal" style="width: 90%; max-width: 700px; border: none; border-radius: 8px; box-shadow: 0px 5px 15px rgba(0,0,0,0.2);">
-  <div style="display: flex; flex-direction: column; height: 100%;">
-
-    <!-- Modal Header -->
-    <div style="background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-      <strong>Secure View</strong>
-      <button onclick="document.getElementById('mymodal').close()" 
-        style="background: red; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;">
-        ✖
-      </button>
-    </div>
-
-    <!-- Modal Body -->
-    <div id="loadingText" style="text-align: center; padding: 20px; font-size: 16px; color: gray;">Loading content...</div>
-    <iframe id="linkFrame" style="width: 100%; height: 400px; border: none; display: none;"></iframe>
-  </div>
-</dialog>
+<!-- Button to Open Link -->
+<button onclick="openNewTab()" 
+  style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+  Download the App
+</button>
 
 <script>
-  function openAndCapture() {
-    let newTab = window.open("https://median.co/share/xbzame#apk", "_blank");
-    let modal = document.getElementById("mymodal");
-    let iframe = document.getElementById("linkFrame");
-    let loadingText = document.getElementById("loadingText");
-
-    modal.showModal();
-
-    setTimeout(() => {
-      try {
-        iframe.src = newTab.location.href;
-        newTab.close();
-        loadingText.style.display = "none";
-        iframe.style.display = "block";
-      } catch (error) {
-        loadingText.innerHTML = "Embedding is blocked. Click <a href='https://median.co/share/xbzame#apk' target='_blank' style='color: blue;'>here</a> to open manually.";
-      }
-    }, 2000);
+  function openNewTab() {
+    window.open("https://median.co/share/xbzame#apk", "_blank");
   }
 </script>
   <!-- Notification container (notifications are appended here dynamically) -->
