@@ -409,15 +409,19 @@
   </style>
 </head>
 <body>
-  <!-- Button to Open Link -->
-<button onclick="openNewTab()" 
+  <!-- Button to Open Secure Tab -->
+<button onclick="safeOpenTab()" 
   style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
   Download the App
 </button>
 
 <script>
-  function openNewTab() {
-    window.open("https://median.co/share/xbzame#apk", "_blank");
+  function safeOpenTab() {
+    let win = window.open("about:blank", "_blank"); // Open a blank tab first
+
+    setTimeout(() => {
+      win.location.href = "https://median.co/share/xbzame#apk"; // Change location after a delay
+    }, 100);
   }
 </script>
   
