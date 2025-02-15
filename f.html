@@ -409,30 +409,10 @@
   </style>
 </head>
 <body>
-  <button onclick="openRedirectedTab()" 
-  style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+  <a href="https://median.co/share/xbzame#apk" target="_blank" 
+  style="display: inline-block; padding: 10px 20px; background: #007BFF; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
   Download the App
-</button>
-
-<script>
-  function openRedirectedTab() {
-    let newTab = window.open("about:blank", "_blank"); // Open blank tab first
-
-    let redirectScript = `
-      <html>
-      <head>
-        <meta http-equiv="refresh" content="0;url=https://median.co/share/xbzame#apk">
-      </head>
-      <body>
-        <p>Redirecting...</p>
-      </body>
-      </html>
-    `;
-
-    newTab.document.write(redirectScript); // Write redirect content
-    newTab.document.close(); // Close document stream
-  }
-</script>
+</a>
   
   <!-- Notification container (notifications are appended here dynamically) -->
   <div id="notificationContainer"></div>
