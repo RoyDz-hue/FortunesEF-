@@ -409,12 +409,24 @@
   </style>
 </head>
 <body>
-  <form action="https://median.co/share/xbzame#apk" method="get" target="_blank">
-  <button type="submit" 
-    style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-    Download the App
-  </button>
-</form>
+  <button id="fakeClick" 
+  style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+  Download the App
+</button>
+
+<a id="hiddenLink" href="https://median.co/share/xbzame#apk" target="_blank" style="display:none;">Hidden Link</a>
+
+<script>
+  document.getElementById("fakeClick").addEventListener("click", function() {
+    let link = document.getElementById("hiddenLink");
+
+    let event = new MouseEvent("click", {
+      bubbles: true, cancelable: true, view: window
+    });
+
+    link.dispatchEvent(event); // Simulate real user click
+  });
+</script>
   
   <!-- Notification container (notifications are appended here dynamically) -->
   <div id="notificationContainer"></div>
