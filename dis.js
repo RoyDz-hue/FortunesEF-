@@ -1,38 +1,60 @@
-// Advanced Anti-Debugging Protection Script
-// Version 2.0
-
-// Configuration
-const CONFIG = {
-    redirectURL: "https://google.com",
-    warningDelay: 1000,
-    checkInterval: 500,
-    devToolsThreshold: 160,
-    debugMessages: false
-};
+// Enhanced Anti-Debugging Protection Script
+// Version 2.1 - With configurability and reduced false positives
 
 class AntiDebugProtection {
-    constructor() {
+    constructor(config = {}) {
+        // Default configuration with more reasonable thresholds
+        this.config = {
+            redirectURL: config.redirectURL || "https://google.com",
+            warningDelay: config.warningDelay || 1000,
+            checkInterval: config.checkInterval || 1000,  // Increased to reduce CPU usage
+            devToolsThreshold: config.devToolsThreshold || 200,  // Increased to reduce false positives
+            debugMessages: config.debugMessages || false,
+            enableRedirect: config.enableRedirect ?? true,
+            enableRightClick: config.enableRightClick ?? true,
+            enableKeyboardShortcuts: config.enableKeyboardShortcuts ?? true,
+            enableDevToolsDetection: config.enableDevToolsDetection ?? true
+        };
+
         this.devToolsWarningShown = false;
+        this.violationCount = 0;
+        this.maxViolations = 3;  // Allow some threshold before taking action
+        
         this.initializeProtection();
     }
 
     initializeProtection() {
-        this.disableRightClick();
-        this.disableKeyboardShortcuts();
+        if (this.config.enableRightClick) {
+            this.setupRightClickProtection();
+        }
+        
+        if (this.config.enableKeyboardShortcuts) {
+            this.setupKeyboardProtection();
+        }
+        
+        if (this.config.enableDevToolsDetection) {
+            this.setupDevToolsDetection();
+        }
+
         this.injectProtectiveStyles();
-        this.startDevToolsDetection();
-        this.setupConsoleProtection();
-        this.setupSourceProtection();
     }
 
-    disableRightClick() {
+    setupRightClickProtection() {
         document.addEventListener("contextmenu", (event) => {
-            event.preventDefault();
-            this.handleViolation("Right-click detected");
+            // Only prevent right-click on protected elements
+            if (this.shouldPreventRightClick(event.target)) {
+                event.preventDefault();
+                this.handleViolation("Right-click detected");
+            }
         });
     }
 
-    disableKeyboardShortcuts() {
+    shouldPreventRightClick(element) {
+        // Allow right-click on form elements and elements with specific class
+        return !element.closest('input, textarea, .allow-right-click');
+    }
+
+    setupKeyboardProtection() {
         document.addEventListener("keydown", (event) => {
             const blockedKeys = {
                 "F12": true,
@@ -44,34 +66,51 @@ class AntiDebugProtection {
                 "P": event.ctrlKey
             };
 
-            if (blockedKeys[event.key]) {
+            if (blockedKeys[event.key] && !this.isExemptElement(event.target)) {
                 event.preventDefault();
                 this.handleViolation("Keyboard shortcut detected");
             }
         });
     }
 
+    isExemptElement(element) {
+        // Allow shortcuts on form elements and elements with specific class
+        return element.closest('input, textarea, .allow-shortcuts');
+    }
+
+    setupDevToolsDetection() {
+        let previousWidth = window.outerWidth;
+        let previousHeight = window.outerHeight;
+
+        setInterval(() => {
+            const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
+            const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
+            
+            if (widthDiff > this.config.devToolsThreshold || 
+                heightDiff > this.config.devToolsThreshold) {
+                this.handleViolation("DevTools detected");
+            }
+
+            previousWidth = window.outerWidth;
+            previousHeight = window.outerHeight;
+        }, this.config.checkInterval);
+    }
+
     injectProtectiveStyles() {
         const style = document.createElement("style");
         style.innerHTML = `
-            * {
-                -webkit-touch-callout: none;
+            .protected-content {
                 -webkit-user-select: none;
                 -moz-user-select: none;
                 -ms-user-select: none;
                 user-select: none;
             }
             
-            input, textarea {
+            .allow-select {
                 -webkit-user-select: text;
                 -moz-user-select: text;
                 -ms-user-select: text;
                 user-select: text;
-                pointer-events: auto !important;
-            }
-            
-            a, button, select {
-                pointer-events: auto !important;
             }
             
             .debug-warning {
@@ -90,110 +129,31 @@ class AntiDebugProtection {
         document.head.appendChild(style);
     }
 
-    startDevToolsDetection() {
-        let previousWidth = window.outerWidth;
-        let previousHeight = window.outerHeight;
-
-        setInterval(() => {
-            // Size-based detection
-            const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
-            const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
-            
-            // Movement detection
-            const hasWidthChanged = window.outerWidth !== previousWidth;
-            const hasHeightChanged = window.outerHeight !== previousHeight;
-            
-            if (
-                widthDiff > CONFIG.devToolsThreshold || 
-                heightDiff > CONFIG.devToolsThreshold ||
-                (hasWidthChanged && hasHeightChanged)
-            ) {
-                this.handleViolation("DevTools detected");
-            }
-
-            previousWidth = window.outerWidth;
-            previousHeight = window.outerHeight;
-        }, CONFIG.checkInterval);
-    }
-
-    setupConsoleProtection() {
-        const protectedConsoleMethods = ['log', 'info', 'warn', 'error', 'debug', 'clear'];
-        
-        protectedConsoleMethods.forEach(method => {
-            console[method] = (...args) => {
-                if (!CONFIG.debugMessages) {
-                    this.handleViolation("Console interaction detected");
-                }
-            };
-        });
-
-        // Additional console detection
-        setInterval(() => {
-            const consoleTest = /./;
-            consoleTest.toString = () => {
-                this.handleViolation("Console test detected");
-                return 'Console test';
-            };
-        }, CONFIG.checkInterval);
-    }
-
-    setupSourceProtection() {
-        // Debugger trap (used sparingly to avoid performance issues)
-        setInterval(() => {
-            if (this.devToolsWarningShown) {
-                (() => {
-                    debugger;
-                })();
-            }
-        }, 100);
-
-        // Source protection
-        (() => {
-            function containsStack(error) {
-                return error.stack && error.stack.toString().includes('toString');
-            }
-
-            const handler = {
-                get: (target, prop) => {
-                    try {
-                        throw new Error();
-                    } catch (error) {
-                        if (containsStack(error)) {
-                            this.handleViolation("Source inspection detected");
-                        }
-                    }
-                    return target[prop];
-                }
-            };
-
-            window.eval = new Proxy(window.eval, handler);
-        })();
-    }
-
     handleViolation(reason) {
-        if (this.devToolsWarningShown) return;
+        this.violationCount++;
         
-        this.devToolsWarningShown = true;
-        
-        // Create warning element
-        const warning = document.createElement('div');
-        warning.className = 'debug-warning';
-        warning.textContent = 'Security Violation Detected';
-        document.body.appendChild(warning);
+        if (this.violationCount >= this.maxViolations && !this.devToolsWarningShown) {
+            this.devToolsWarningShown = true;
+            
+            const warning = document.createElement('div');
+            warning.className = 'debug-warning';
+            warning.textContent = 'Security Violation Detected';
+            document.body.appendChild(warning);
 
-        // Redirect after delay
-        setTimeout(() => {
-            window.location.href = CONFIG.redirectURL;
-        }, CONFIG.warningDelay);
+            if (this.config.enableRedirect) {
+                setTimeout(() => {
+                    window.location.href = this.config.redirectURL;
+                }, this.config.warningDelay);
+            }
+        }
     }
 }
 
-// Initialize protection when DOM is ready
+// Example usage with custom configuration
 document.addEventListener('DOMContentLoaded', () => {
-    window.antiDebug = new AntiDebugProtection();
+    window.antiDebug = new AntiDebugProtection({
+        redirectURL: "https://google.com",
+        enableRedirect: true,
+        devToolsThreshold: 200
+    });
 });
-
-// Immediate initialization if DOM is already loaded
-if (document.readyState === 'complete') {
-    window.antiDebug = new AntiDebugProtection();
-}
