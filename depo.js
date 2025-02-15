@@ -445,7 +445,7 @@ class PaymentProcessor {
         try {
             await this.updateUserBalance(transaction.amount);
             this.pendingTransactions.delete(transaction.reference);
-            this.showToast('Payment successful! Balance updated.', 'success');
+            this.showToast('Payment successful! Amount Credited.', 'success');
             this.dispatchPaymentEvent('paymentSuccess', transaction);
         } catch (error) {
             this.storeFailedBalanceUpdate(transaction);
@@ -550,7 +550,7 @@ class PaymentProcessor {
                     bottom: 20px;
                     right: 20px;
                     padding: 12px 24px;
-                    border-radius: 4px;
+                    bord iter-radius: 4px;
                     color: white;
                     z-index: 1000;
                     animation: slideIn 0.3s ease-out;
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 await paymentProcessor.initiateSTKPush(amount, phone);
-                paymentProcessor.showToast('STK Push sent! Please check your phone.', 'success');
+                paymentProcessor.showToast('STK Push sent! Please check your phone,DO NOT CLOSE THIS MODAL WAIT!.', 'success');
             } catch (error) {
                 paymentProcessor.showToast(error.message, 'error');
             } finally {
