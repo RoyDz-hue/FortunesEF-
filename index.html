@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        // Get referral code from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const referralCode = urlParams.get('ref');
+
+        // Redirect to pinlogin.html with the referral code if it exists
+        window.location.href = referralCode ? `pinlogin.html?ref=${referralCode}` : 'pinlogin.html';
+    </script>
+</head>
+<body>
+</body>
+</html>

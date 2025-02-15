@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Games</title>
+    <!-- PASTE CSS BELOW THIS LINE -->
+    <style>
+    /* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #1a1a2e, #16213e);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --gold: #ffd700;
+    --danger: #ff6b6b;
+    --success: #4CAF50;
+    --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --box-glow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+body {
+    background: var(--primary-gradient);
+    min-height: 100vh;
+    color: var(--text-primary);
+    overflow-x: hidden;
+    padding: 20px;
+}
+
+/* Game Container */
+.game-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 20px;
+    width: 95%;
+    max-width: 800px;
+    margin: 20px auto;
+    box-shadow: var(--box-shadow);
+}
+
+/* Header Styles */
+.game-header {
+    margin-bottom: 1.5rem;
+}
+
+.user-profile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px solid var(--glass-border);
+}
+
+.balance {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--gold);
+}
+
+.game-selector {
+    display: flex;
+    gap: 10px;
+}
+
+.game-selector button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.game-selector button.active,
+.game-selector button:hover {
+    background: var(--gold);
+    color: #1a1a2e;
+}
+
+/* Wheel Game Styles */
+.wheel-section {
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    aspect-ratio: 1;
+    margin: 20px auto;
+    animation: floatAnimation 3s ease-in-out infinite;
+}
+
+.wheel-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2),
+                inset 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    background: conic-gradient(
+        #FF69B4 0deg 36deg,
+        #87CEEB 36deg 72deg,
+        #98FB98 72deg 108deg,
+        #DDA0DD 108deg 144deg,
+        #F0E68C 144deg 180deg,
+        #FF7F50 180deg 216deg,
+        #00CED1 216deg 252deg,
+        #BA55D3 252deg 288deg,
+        #32CD32 288deg 324deg,
+        #FF69B4 324deg 360deg
+    );
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+}
+
+.pointer-triangle {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 40px solid #fff;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.3));
+}
+
+/* Box Game Styles - Updated */
+.boxes-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.box-wrapper {
+    aspect-ratio: 1;
+    cursor: pointer;
+    perspective: 2500px;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+.gift-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.box-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #2a2a2a, #3a3a3a);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    transform-origin: top;
+    transition: all 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+    backface-visibility: hidden;
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.3),
+        inset 0 2px 5px rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5em;
+}
+
+.box-content {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+    border-radius: 15px;
+    transform: translateZ(-30px);
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.multiplier-value {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.5s ease 0.6s;
+}
+
+/* Opening Animation */
+.gift-box.opened .box-front {
+    animation: realBoxOpen 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes realBoxOpen {
+    0% {
+        transform: rotateX(0) translateY(0) translateZ(0);
+    }
+    20% {
+        transform: rotateX(-40deg) translateY(-10%) translateZ(40px);
+    }
+    40% {
+        transform: rotateX(-80deg) translateY(-30%) translateZ(100px);
+    }
+    60% {
+        transform: rotateX(-120deg) translateY(-60%) translateZ(160px);
+    }
+    80% {
+        transform: rotateX(-160deg) translateY(-90%) translateZ(200px);
+    }
+    100% {
+        transform: rotateX(-180deg) translateY(-120%) translateZ(250px) rotateY(-10deg);
+    }
+}
+
+.gift-box.opened .box-content {
+    opacity: 1;
+    transform: translateZ(0);
+    animation: contentReveal 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.gift-box.opened .multiplier-value {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Selected Box Styles */
+.gift-box.opened.winner .box-content {
+    background: linear-gradient(145deg, #22c55e, #16a34a);
+    box-shadow: 
+        0 0 30px rgba(34, 197, 94, 0.4),
+        inset 0 0 15px rgba(255, 255, 255, 0.2);
+    animation: selectedBoxPulse 2s infinite;
+}
+
+/* Revealed Boxes Styles */
+.gift-box.opened:not(.winner) .box-content {
+    background: linear-gradient(145deg, #fbbf24, #f59e0b);
+    box-shadow: 
+        0 0 20px rgba(251, 191, 36, 0.3),
+        inset 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+@keyframes selectedBoxPulse {
+    0%, 100% {
+        transform: translateZ(0) scale(1);
+        box-shadow: 
+            0 0 30px rgba(34, 197, 94, 0.4),
+            inset 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        transform: translateZ(20px) scale(1.02);
+        box-shadow: 
+            0 0 50px rgba(34, 197, 94, 0.6),
+            inset 0 0 25px rgba(255, 255, 255, 0.3);
+    }
+}
+
+@keyframes contentReveal {
+    0% {
+        transform: translateZ(-50px) scale(0.95);
+        filter: brightness(0.5);
+    }
+    100% {
+        transform: translateZ(0) scale(1);
+        filter: brightness(1);
+    }
+}
+
+/* Hover Effects */
+.gift-box:not(.opened):hover {
+    transform: translateY(-5px) scale(1.02);
+    transition: all 0.3s ease;
+}
+
+.gift-box:not(.opened):hover .box-front {
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.4),
+        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+}
+
+/* Shadow Effects */
+.box-wrapper::after {
+    content: '';
+    position: absolute;
+    width: 140%;
+    height: 40px;
+    bottom: -20px;
+    left: -20%;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 70%);
+    transform: rotateX(90deg);
+    filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.gift-box.opened ~ .box-wrapper::after {
+    opacity: 1;
+}
+
+/* Winner Animation */
+@keyframes winnerGlow {
+    0%, 100% {
+        box-shadow: 
+            0 0 30px rgba(34, 197, 94, 0.4),
+            inset 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 0 50px rgba(34, 197, 94, 0.6),
+            inset 0 0 25px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Continue Button Styles */
+.continue-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 12px 24px;
+    background: linear-gradient(145deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.continue-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+}
+
+
+
+/* Controls Section */
+.controls-section,
+.stake-input-container {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+.stake-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.stake-button {
+    border: none;
+    border-radius: 15px;
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #FF69B4, #87CEEB);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stake-button:hover {
+    transform: scale(1.05);
+}
+
+.spin-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 15px;
+    background: linear-gradient(45deg, var(--success), #45b7d1);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.spin-button:hover {
+    transform: scale(1.02);
+}
+
+.custom-stake,
+#stakeAmount {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+/* Modals */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+.modal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+    transform: scale(0.7);
+    transition: transform 0.3s;
+    border: 1px solid var(--glass-border);
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.modal-content button {
+    margin-top: 1.5rem;
+    padding: 10px 30px;
+    border: none;
+    border-radius: 10px;
+    background: var(--success);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes floatAnimation {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes contentReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) translateZ(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) translateZ(-10px);
+    }
+}
+
+@keyframes winPulse {
+    0% {
+        transform: scale(1) translateZ(-10px);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        transform: scale(1.05) translateZ(-10px);
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+    }
+    100% {
+        transform: scale(1) translateZ(-10px);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+}
+
+@keyframes shuffle {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(1.1) rotate(90deg);
+    }
+    75% {
+        transform: scale(1.1) rotate(270deg);
+    }
+    100% {
+        transform: scale(1) rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wheel-section {
+        max-width: 300px;
+    }
+
+    .boxes-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+
+    .box-lid {
+        font-size: 2rem;
+    }
+    
+    }
+
+    .box-bottom {
+        font-size: 1.5rem;
+    }
+
+    .user-profile {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .game-selector {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .balance {
+        font-size: 1.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wheel,
+    .gift-box,
+    .box-lid,
+    .box-bottom,
+    .modal-content {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Continue Button */
+.continue-btn {
+    display: block;
+    margin: 20px auto;
+    transition: all 0.3s ease;
+}
+
+.continue-btn:hover {
+    transform: scale(1.05);
+}
+</style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="user-profile">
+                <div class="user-info">
+                    <span class="balance">KSH <span id="userBalance">0.00</span></span>
+                </div>
+                <div class="game-selector">
+                    <button class="active" data-game="wheel">Wheel</button>
+                    <button data-game="boxes">Boxes</button>
+                    <button data-game="help">Help</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wheel Game -->
+        <div id="wheelGame" class="game-content">
+            <section class="wheel-section">
+                <div class="wheel-container">
+                    <div class="wheel-pointer">
+                        <div class="pointer-triangle"></div>
+                    </div>
+                    <div class="wheel" id="wheel"></div>
+                </div>
+            </section>
+            <section class="controls-section">
+                <div class="stake-controls">
+                    <button class="stake-button" data-amount="20">Sh20</button>
+                    <button class="stake-button" data-amount="50">Sh50</button>
+                    <button class="stake-button" data-amount="100">Sh100</button>
+                    <button class="stake-button" data-amount="200">Sh200</button>
+                    <button class="stake-button" data-amount="500">Sh500</button>
+                </div>
+                <input type="number" class="custom-stake" id="customStake" 
+                       placeholder="Enter stake amount" min="10" max="1000" step="10">
+                <button class="spin-button" id="spinButton">SPIN</button>
+            </section>
+        </div>
+
+        <!-- Box Game -->
+        <div id="boxesGame" class="game-content" style="display: none;">
+            <div class="stake-input-container">
+                <input type="number" id="stakeAmount" 
+                       placeholder="Enter stake amount" min="10" max="1000" step="10">
+            </div>
+            <div class="boxes-container">
+                <div class="box-wrapper">
+                    <div class="gift-box">
+                        <div class="box-front">🎁</div>
+                        <div class="box-content"><div class="multiplier-value"></div></div>
+                    </div>
+                </div>
+                <div class="box-wrapper">
+                    <div class="gift-box">
+                        <div class="box-front">🎁</div>
+                        <div class="box-content"><div class="multiplier-value"></div></div>
+                    </div>
+                </div>
+                <div class="box-wrapper">
+                    <div class="gift-box">
+                        <div class="box-front">🎁</div>
+                        <div class="box-content"><div class="multiplier-value"></div></div>
+                    </div>
+                </div>
+                <div class="box-wrapper">
+                    <div class="gift-box">
+                        <div class="box-front">🎁</div>
+                        <div class="box-content"><div class="multiplier-value"></div></div>
+                    </div>
+                </div>
+                <div class="box-wrapper">
+                    <div class="gift-box">
+                        <div class="box-front">🎁</div>
+                        <div class="box-content"><div class="multiplier-value"></div></div>
+                    </div>
+                </div>
+                <div class="box-wrapper">
+                    <div class="gift-box">
+                        <div class="box-front">🎁</div>
+                        <div class="box-content"><div class="multiplier-value"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div id="helpGame" class="game-content" style="display: none;">
+            <h2>How to Play</h2>
+
+            <h3>Game A: Wheel Game</h3>
+            <p><strong>How to play:</strong> Spin the wheel to land on a multiplier and win based on your stake.</p>
+            <h4>Steps:</h4>
+            <p><strong>1. Set Your Stake</strong><br>
+            Enter the amount you want to bet (between Sh10 and Sh1000). Ensure you have enough money in your account.</p>
+            <p><strong>2. Spin the Wheel</strong><br>
+            Click the Spin button to start the game. The wheel will spin and stop on a random multiplier.</p>
+            <p><strong>3. Winning</strong><br>
+            If the multiplier is greater than 0, your winnings are calculated as:<br>
+            <code>Winnings = Stake × Multiplier</code><br>
+            Your winnings will be added to your account.</p>
+            <p><strong>4. Cooldown Period</strong><br>
+            You must wait for the cooldown period to end before spinning again.</p>
+
+            <h3>Game B: Box Game</h3>
+            <p><strong>How to play:</strong> Select a box to reveal a hidden multiplier and win based on your stake.</p>
+            <h4>Steps:</h4>
+            <p><strong>1. Set Your Stake</strong><br>
+            Enter the amount you want to bet (between Sh10 and Sh1000). Ensure you have enough money in your account.</p>
+            <p><strong>2. Choose a Box</strong><br>
+            Click on one of the gift boxes to open it.</p>
+            <p><strong>3. Reveal the Multiplier</strong><br>
+            The chosen box will reveal a multiplier. If the multiplier is greater than 0, your winnings are calculated as:<br>
+            <code>Winnings = Stake × Multiplier</code><br>
+            Your winnings will be added to your account.</p>
+            <p><strong>4. Reveal Other Boxes</strong><br>
+            After your selection, all other boxes will also be revealed.</p>
+            <p><strong>5. Continue Playing</strong><br>
+            Click the Continue Playing button to reset the boxes and play another round.</p>
+            <p><strong>6. Cooldown Period</strong><br>
+            You must wait for the cooldown period to end before selecting another box.</p>
+
+            <h3>Key Rules for Both Games</h3>
+            <ul>
+                <li><strong>Stake Limits:</strong> Minimum stake is Sh10, maximum is Sh1000.</li>
+                <li><strong>Sufficient Funds:</strong> You must have enough balance to place a bet.</li>
+                <li><strong>Cooldown Period:</strong> You must wait for the cooldown period before playing again.</li>
+            </ul>
+
+            <p>Enjoy the game and bet responsibly!</p>
+        </div>
+
+        <!-- Modals -->
+        <div id="resultModal" class="modal">
+            <div class="modal-content">
+                <h3 id="resultTitle"></h3>
+                <p id="resultMessage"></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+    <!-- PASTE JAVASCRIPT BELOW THIS LINE -->
+<script type="module" src="pin.js"></script>
+<script src="dis.js"></script>
+
+</body>
+</html>

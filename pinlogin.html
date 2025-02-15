@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- Firebase Configuration -->
+    <script src="fig.js"></script>
+    <style>
+        /* ADD YOUR CSS HERE */
+        /* Paste all your CSS rules between these comments */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1a1a2e, #16213e);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --gold: #ffd700;
+            --danger: #ff6b6b;
+            --success: #4CAF50;
+        }
+
+        body {
+            background: var(--primary-gradient);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--glass-border);
+            border-radius: 4px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--success);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #388E3C;
+            transform: translateY(-2px);
+        }
+
+        .links {
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: var(--success);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+            padding: 10px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 4px;
+            border: 1px solid var(--danger);
+        }
+
+        .success-message {
+            color: var(--success);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+            padding: 10px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 4px;
+            border: 1px solid var(--success);
+        }
+        
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .alert.error {
+            background-color: #ff6b6b;
+        }
+
+        .alert.success {
+            background-color: #4CAF50;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="loginSection" class="form-section active">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <div class="error-message" id="loginError"></div>
+                <button type="submit">Login</button>
+                <div class="links">
+                    <a id="showForgotPassword">Forgot Password?</a> | 
+                    <a id="showRegister">Don't have an account? Register here</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerSection" class="form-section">
+            <h2>Register</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="registerPassword" placeholder="Password" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="referralCode" placeholder="Referral Code">
+                </div>
+                <div class="error-message" id="registerError"></div>
+                <div class="success-message" id="registerSuccess"></div>
+                <button type="submit">Register</button>
+                <div class="links">
+                    <a id="showLogin">Already have an account? Login</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Forgot Password Message -->
+        <div id="forgotPasswordSection" class="form-section">
+            <h2>Contact Customer Care</h2>
+            <div class="customer-care-message">
+                Kindly contact Customer Care on 
+                <a href="https://channel1.example.com" target="_blank">Channel1</a> or 
+                <a href="https://channel2.example.com" target="_blank">Channel2</a>.
+            </div>
+            <div class="links">
+                <a id="backToLogin">Back to Login</a>
+            </div>
+        </div>
+    </div>
+<script src="pinlogin.js"></script>   
+<script src="dis.js"></script>
+</body>
+</html>

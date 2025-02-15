@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile - FirtuneSEF</title>
+  
+  <!-- Firebase Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  
+  <!-- FontAwesome (single version) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <style>
+    /* Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    :root {
+      --primary-gradient: linear-gradient(135deg, #1a1a2e, #16213e);
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --text-primary: #ffffff;
+      --text-secondary: #e0e0e0;
+      --gold: #ffd700;
+      --danger: #ff6b6b;
+      --success: #4CAF50;
+    }
+    
+    body {
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 20px;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    
+    .profile-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      border-radius: 4px;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 1000;
+    }
+    
+    .notification.success {
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+    
+    .notification.error {
+      background-color: var(--danger);
+    }
+    
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* User Info Section */
+    .user-info {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease;
+    }
+    
+    .user-info:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    #user-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--success);
+      transition: border-color 0.3s ease;
+      margin-bottom: 15px;
+    }
+    
+    #user-avatar:hover {
+      border-color: var(--gold);
+    }
+    
+    /* Balance Card */
+    .balance-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      color: var(--gold);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      font-weight: bold;
+    }
+    
+    .balance-card h2 {
+      margin-bottom: 10px;
+    }
+    
+    .balance-amount {
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      margin: 1rem 0;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      color: var(--gold);
+    }
+    
+    /* Update Profile & Referral Info */
+    .info-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+    
+    .info-card:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    form {
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    form label {
+      margin-bottom: 5px;
+    }
+    
+    form input {
+      padding: 8px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    
+    form button {
+      background-color: var(--success);
+      color: var(--text-primary);
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      margin-top: 5px;
+    }
+    
+    form button:hover {
+      background-color: #388E3C;
+      transform: translateY(-2px);
+    }
+    
+    form button:active {
+      transform: translateY(0);
+    }
+    
+    form button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Referral List Section */
+    .referral-list {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      overflow-x: auto;
+    }
+    
+    .referral-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      word-break: break-all;
+    }
+    
+    #referralLink {
+      padding: 8px;
+      background: var(--success);
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .copy-btn, .share-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+      color: white;
+    }
+    
+    .copy-btn {
+      background-color: #4CAF50;
+    }
+    
+    .share-btn {
+      background-color: #2196F3;
+    }
+    
+    /* Share Modal */
+    .share-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    
+    .share-modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 300px;
+      width: 90%;
+      text-align: center;
+    }
+    
+    .share-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+    
+    .share-option:hover {
+      background: #f5f5f5;
+    }
+    
+    /* Referral Tracking Table */
+    .referral-history {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+      table-layout: fixed;
+    }
+    
+    .referral-history th, 
+    .referral-history td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--glass-border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .referral-history th {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      color: var(--text-primary);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      font-weight: bold;
+    }
+    
+    .referral-history tr:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+    
+      .user-info, .info-card, .referral-list {
+        padding: 15px;
+        text-align: center;
+      }
+    
+      .referral-history {
+        font-size: 12px;
+      }
+    
+      .referral-history th, .referral-history td {
+        padding: 6px;
+      }
+    
+      #user-avatar {
+        width: 100px;
+        height: 100px;
+      }
+    
+      form button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    
+      .balance-amount {
+        font-size: 1.8rem;
+      }
+    }
+    
+    /* Fade-in Animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <!-- Notification container (notifications are appended here dynamically) -->
+  <div id="notificationContainer"></div>
+  
+  <div class="profile-container fade-in">
+    <!-- User Info Section -->
+    <div class="user-info">
+      <img id="user-avatar" src="avatar.png" alt="User Avatar">
+      <h2 id="userId">Loading...</h2>
+      <p id="userEmail">Loading...</p>
+      <p id="onboardSince">Onboard Since: Loading...</p>
+      <div class="balance-card" id="userBalance">
+        <h2>Balance</h2>
+        <p>KSH <span id="amount">0.00</span></p>
+      </div>
+    </div>
+    
+    <!-- Update Profile Section -->
+    <div class="info-card">
+      <h2>Update Profile</h2>
+      <div id="updateSuccess" class="notification"></div>
+      <div id="updateError" class="notification"></div>
+      
+      <!-- Update Email -->
+      <form id="updateEmailForm" class="form-group">
+        <label for="newEmail">New Email</label>
+        <input type="email" id="newEmail" required>
+        <button type="submit">Update Email</button>
+      </form>
+      
+      <!-- Update Password -->
+      <form id="updatePasswordForm" class="form-group">
+        <label for="currentPassword">Current Password</label>
+        <input type="password" id="currentPassword" required>
+        <label for="newPassword">New Password</label>
+        <input type="password" id="newPassword" required>
+        <button type="submit">Update Password</button>
+      </form>
+    </div>
+    
+    <!-- Referral Link Section -->
+    <div class="referral-list">
+      <h2>Referral Volt</h2>
+      <div class="referral-link">
+        <span id="referralLink">https://example.com/referral</span>
+        <div class="button-group">
+          <button class="copy-btn" onclick="copyReferralLink()">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <button class="share-btn" onclick="openShareModal()">
+            <i class="fas fa-share-alt"></i> Share
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="shareModal" class="share-modal">
+      <div class="share-modal-content">
+        <h3>Share via</h3>
+        <a class="share-option" href="#" onclick="shareVia('whatsapp'); return false;">
+          <i class="fab fa-whatsapp" style="color: #25D366"></i> WhatsApp
+        </a>
+        <a class="share-option" href="#" onclick="shareVia('telegram'); return false;">
+          <i class="fab fa-telegram" style="color: #0088cc"></i> Telegram
+        </a>
+        <a class="share-option" href="#" onclick="shareVia('email'); return false;">
+          <i class="fas fa-envelope" style="color: #EA4335"></i> Email
+        </a>
+        <a class="share-option" href="#" onclick="shareVia('sms'); return false;">
+          <i class="fas fa-sms" style="color: #63B3ED"></i> SMS
+        </a>
+        <div class="share-option" onclick="closeShareModal()">
+          <i class="fas fa-times"></i> Cancel
+        </div>
+      </div>
+    </div>
+    
+    <!-- Referral Tracking Table -->
+    <h3>Referrals Track</h3>
+    <table class="referral-history">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Earned</th>
+        </tr>
+      </thead>
+      <tbody id="referralsBody">
+        <tr>
+          <td colspan="3">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <footer>
+    &copy; 2025 FirtuneSEF. All rights reserved.
+  </footer>
+  
+  <script src="pf.js"></script>
+    <script src="dis.js"></script>
+</body>
+</html>
+    

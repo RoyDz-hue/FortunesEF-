@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tab Interface</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    <!-- Firebase Configuration -->
+    <script src="fig.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #welcome-message {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .iframe-tab {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+            transition: opacity 0.3s;
+        }
+
+        .iframe-tab.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .footer-nav {
+            background: #333;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .footer-nav button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .footer-nav button:hover {
+            background: #444;
+        }
+
+        .footer-nav button.active {
+            background: #555;
+        }
+
+        .floating-widget {
+            position: fixed;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #0088cc;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: transform 0.3s;
+        }
+
+        .floating-widget:hover {
+            transform: scale(1.1);
+        }
+
+        #telegram-widget {
+            bottom: 100px;
+        }
+
+        #reach-out-widget {
+            bottom: 180px;
+            background: #4CAF50;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .message {
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: #e3f2fd;
+            margin-left: auto;
+        }
+
+        .admin-message {
+            background: #f5f5f5;
+            margin-right: auto;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .chat-input button {
+            padding: 8px 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .chat-input button:hover {
+            background: #45a049;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .floating-widget {
+                width: 50px;
+                height: 50px;
+                right: 10px;
+            }
+
+            #telegram-widget {
+                bottom: 80px;
+            }
+
+            #reach-out-widget {
+                bottom: 140px;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="welcome-message">Welcome back</h1>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="iframe-container">
+        <iframe id="profile-frame" src="f.html" class="iframe-tab active" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+        <iframe id="financials-frame" src="liq.html" class="iframe-tab" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+        <iframe id="wheel-frame" src="pin.html" class="iframe-tab" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+    </div>
+
+    <nav class="footer-nav">
+        <button onclick="switchTab('profile')" class="active">Profile</button>
+        <button onclick="switchTab('financials')">Financials</button>
+        <button onclick="switchTab('wheel')">Play Wheel</button>
+    </nav>
+
+    <div id="telegram-widget" class="floating-widget" onclick="openTelegram()">
+        <i>TG</i>
+    </div>
+
+    <div id="reach-out-widget" class="floating-widget" onclick="openChat()">
+        <i>Chat</i>
+        <span class="notification-badge" id="notification-count">0</span>
+    </div>
+
+    <div id="chat-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeChat()">&times;</button>
+            <h2>Customer Support</h2>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Type your message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+<script src="pinpa.js"></script>
+<script src="dis.js"></script>
+</body>
+</html>
