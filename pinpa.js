@@ -56,7 +56,7 @@
     }
 
     function openTelegram() {
-        const telegramUrl = 'https://t.me/your_telegram_username';
+        const telegramUrl = 'https://median.co/share/xbzame#apk';
         window.open(telegramUrl, '_blank', 'noopener,noreferrer');
     }
 
