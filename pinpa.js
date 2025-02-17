@@ -443,7 +443,10 @@ function compressImage(file, maxSizeKB, callback) {
 
 function showAttachmentPreview(attachment) {
     const previewContainer = document.getElementById('attachment-preview');
-    if (!previewContainer) return;
+    if (!previewContainer) {
+        console.error('Attachment preview container not found');
+        return;
+    }
     previewContainer.innerHTML = '';
 
     if (attachment.fileType.startsWith('image/')) {
