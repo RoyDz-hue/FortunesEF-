@@ -183,21 +183,21 @@
     }
     
     // Share via various platforms
-    function shareVia(platform) {
-    const referralLink = document.getElementById('referralLink').textContent;
-    const shareText = `🎉 Win passive cash on Fortunesly! 🎉
+function shareVia(platform) {
+  const referralLink = document.getElementById('referralLink').textContent;
+  const shareText = `🎉 Win passive cash on Fortunesly! 🎉
 Play now just by choosing the right boxe🎁 It's fun, fast, and rewarding! 🤩🔥
-Try your luck today! 👉: ${referralLink}`;
-    
-    window.parent.postMessage({
-        type: 'share',
-        platform,
-        link: referralLink,
-        text: shareText
-    }, '*');
-    
-    closeShareModal();
-    return false;
+Try your luck today! 👉 ${referralLink}`;
+
+  window.parent.postMessage({
+      type: 'share',
+      platform,
+      link: referralLink,
+      text: shareText
+  }, '*');
+
+  closeShareModal();
+  return false;
 }
     
     // Close share modal when clicking outside its content
