@@ -513,8 +513,10 @@ window.addEventListener('message', (event) => {
         const shareText = encodeURIComponent(text);
         const urls = {
             whatsapp: `https://wa.me/?text=${shareText}`,
-            telegram: `https://t.me/share/url?url=${encodeURIComponent(event.data.link)}&text=${encodeURIComponent('Check this out:')}`,
-            email: `mailto:?subject=${encodeURIComponent('Check out this referral')}&body=${shareText}`,
+            telegram: `https://t.me/share/url?url=${encodeURIComponent(event.data.link)}&text=${encodeURIComponent('🎉 Win passive cash on Fortunesly! 🎉
+Play now just by choosing the right boxe🎁 It's fun, fast, and rewarding! 🤩🔥
+Try your luck today! 👉:')}`,
+            email: `mailto:?subject=${encodeURIComponent('Check out this')}&body=${shareText}`,
             sms: `sms:?body=${shareText}`
         };
         window.open(urls[platform], '_blank');
