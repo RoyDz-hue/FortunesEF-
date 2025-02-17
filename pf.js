@@ -14,6 +14,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
+    
     // Mask Email (shows only first 3 characters of username)
     function maskEmail(email) {
       const [name, domain] = email.split('@');
@@ -183,31 +184,19 @@
     
     // Share via various platforms
     function shareVia(platform) {
-      const referralLink = document.getElementById('referralLink').textContent;
-      const shareText = encodeURIComponent(`Check this out: ${referralLink}`);
-      let shareURL = '';
+    const referralLink = document.getElementById('referralLink').textContent;
+    const shareText = `Check this out: ${referralLink}`;
     
-      switch(platform) {
-        case 'whatsapp':
-          shareURL = `https://wa.me/?text=${shareText}`;
-          break;
-        case 'telegram':
-          shareURL = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Check this out:')}`;
-          break;
-        case 'email':
-          shareURL = `mailto:?subject=${encodeURIComponent('Check out this referral')}&body=${shareText}`;
-          break;
-        case 'sms':
-          shareURL = `sms:?body=${shareText}`;
-          break;
-      }
+    window.parent.postMessage({
+        type: 'share',
+        platform,
+        link: referralLink,
+        text: shareText
+    }, '*');
     
-      if (shareURL) {
-        window.open(shareURL, '_blank');
-        closeShareModal();
-      }
-      return false;
-    }
+    closeShareModal();
+    return false;
+}
     
     // Close share modal when clicking outside its content
     window.addEventListener('click', function(event) {
@@ -219,17 +208,17 @@
     
     // Update Email
     document.getElementById('updateEmailForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newEmail = document.getElementById('newEmail').value;
-      try {
-        const user = auth.currentUser;
-        await user.updateEmail(newEmail);
-        await db.collection('spinusers').doc(user.uid).update({ email: newEmail });
-        showNotification('Email updated successfully!', 'success');
-      } catch (error) {
-        showNotification(error.message, 'error');
-      }
-    });
+  e.preventDefault();
+  const newEmail = document.getElementById('newEmail').value;
+  try {
+    const user = auth.currentUser;
+    await user.updateEmail(newEmail);
+    await db.collection('spinusers').doc(user.uid).update({ email: newEmail });
+    showNotification('Contact Support for this update', 'info');
+  } catch (error) {
+    showNotification('Contact Support for this update', 'error');
+  }
+});
     
     // Update Password
     document.getElementById('updatePasswordForm').addEventListener('submit', async (e) => {
