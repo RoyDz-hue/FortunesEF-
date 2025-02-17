@@ -467,6 +467,17 @@ function showAttachmentPreview(attachment) {
         clearAttachmentPreview();
     };
     previewContainer.appendChild(removeButton);
+    
+    // Make the preview visible
+    previewContainer.classList.add('active');
+}
+
+function clearAttachmentPreview() {
+    const previewContainer = document.getElementById('attachment-preview');
+    if (previewContainer) {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.remove('active');
+    }
 }
 
 function clearAttachmentPreview() {
