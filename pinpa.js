@@ -487,6 +487,20 @@ function clearAttachmentPreview() {
     }
 }
 
+function handleLogout() {
+    pauseAllOperations();
+    clearLocalStorage();
+    window.location.href = 'pinlogin.html';
+}
+
+function pauseAllOperations() {
+    // Implementation to pause all ongoing operations
+}
+
+function clearLocalStorage() {
+    localStorage.clear();
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message-input');
